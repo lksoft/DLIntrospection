@@ -52,6 +52,10 @@ static void getSuper(Class class, NSMutableString *result) {
 
 @implementation NSObject (DLIntrospection)
 
++ (NSString *)reflectHelp {
+	return @"+[NSObject classes]\n+[NSObject classeMethods]\n+[NSObject instanceMethods]\n+[NSObject properties]\n+[NSObject instanceVariables]\n+[NSObject protocols]\n+[NSObject parentClassHierarchy]";
+}
+
 + (NSArray *)classes {
     unsigned int classesCount;
     Class *classes = objc_copyClassList(&classesCount);
@@ -78,7 +82,7 @@ static void getSuper(Class class, NSMutableString *result) {
         [result addObject:[self formattedPropery:properties[i]]];
     }
     free(properties);
-    return result.count ? [result copy] : nil;
+    return result.count ? [[result copy] autorelease] : nil;
 }
 
 + (NSArray *)instanceVariables {
@@ -92,7 +96,7 @@ static void getSuper(Class class, NSMutableString *result) {
         [result addObject:ivarDescription];
     }
     free(ivars);
-    return result.count ? [result copy] : nil;
+    return result.count ? [[result copy] autorelease] : nil;
 }
 
 + (NSArray *)protocols {
@@ -118,7 +122,7 @@ static void getSuper(Class class, NSMutableString *result) {
         //free(adotedProtocols);
     }
     //free((__bridge void *)(*protocols));
-    return result.count ? [result copy] : nil;
+    return result.count ? [[result copy] autorelease] : nil;
 }
 
 + (NSDictionary *)descriptionForProtocol:(Protocol *)proto {
@@ -141,11 +145,11 @@ static void getSuper(Class class, NSMutableString *result) {
     if (optionalMethods.count) {
         [methodsAndProperties setObject:optionalMethods forKey:@"@optional"];
     } if (propertyDescriptions.count) {
-        [methodsAndProperties setObject:[propertyDescriptions copy] forKey:@"@properties"];
+        [methodsAndProperties setObject:[[propertyDescriptions copy] autorelease] forKey:@"@properties"];
     }
     
     free(properties);
-    return methodsAndProperties.count ? [methodsAndProperties copy ] : nil;
+    return methodsAndProperties.count ? [[methodsAndProperties copy] autorelease] : nil;
 }
 
 + (NSString *)parentClassHierarchy {
@@ -167,7 +171,7 @@ static void getSuper(Class class, NSMutableString *result) {
                                        NSStringFromSelector(method_getName(methods[i]))];
         
         NSInteger args = method_getNumberOfArguments(methods[i]);
-        NSMutableArray *selParts = [[methodDescription componentsSeparatedByString:@":"] mutableCopy];
+        NSMutableArray *selParts = [[[methodDescription componentsSeparatedByString:@":"] mutableCopy] autorelease];
         NSInteger offset = 2; //1-st arg is object (@), 2-nd is SEL (:)
         
         for (int idx = (int)offset; idx < args; idx++) {
@@ -180,7 +184,7 @@ static void getSuper(Class class, NSMutableString *result) {
         [result addObject:[selParts componentsJoinedByString:@" "]];
     }
     free(methods);
-    return result.count ? [result copy] : nil;
+    return result.count ? [[result copy] autorelease] : nil;
 }
 
 + (NSArray *)formattedMethodsForProtocol:(Protocol *)proto required:(BOOL)required instance:(BOOL)instance {
@@ -197,7 +201,7 @@ static void getSuper(Class class, NSMutableString *result) {
     }
     
     free(methods);
-    return  [methodsDescription copy];
+    return  [[methodsDescription copy] autorelease];
 }
 
 + (NSString *)formattedPropery:(objc_property_t)prop {
@@ -237,6 +241,6 @@ static void getSuper(Class class, NSMutableString *result) {
      [attrsArray componentsJoinedByString:@", "],
      [NSString decodeType:[[attributes objectForKey:@"T"] cStringUsingEncoding:NSUTF8StringEncoding]],
      [NSString stringWithCString:property_getName(prop) encoding:NSUTF8StringEncoding]];
-    return [property copy];
+    return [[property copy] autorelease];
 }
 @end
